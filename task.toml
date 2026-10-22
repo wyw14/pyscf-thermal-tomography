@@ -1,0 +1,23 @@
+schema_version = "1.3"
+artifacts = ["/app/src"]
+[task]
+name = "local/04-pyscf-thermal-tomography"
+description = "Native finite-temperature electronic Hamiltonian reconstruction from unlabeled observation paths"
+authors = [{ name = "wyw" }]
+[agent]
+timeout_sec = 3600
+[environment]
+build_timeout_sec = 1800
+cpus = 2
+memory_mb = 4096
+storage_mb = 8192
+gpus = 0
+allow_internet = true
+[verifier]
+environment_mode = "separate"
+user = "root"
+timeout_sec = 900
+[metadata]
+difficulty = "hard"
+category = "D.7 化学与材料"
+expert_time_estimate = "12-24 hours (author estimate for native GHF inference, global selection and independent validation; not measured)"

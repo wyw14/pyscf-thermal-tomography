@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "description": "Fixed pre-calibration weights for independent scientific and continuation behaviors",
+  "weights": {
+    "test_native_correspondence_density": 12,
+    "test_complete_physical_candidate_counts": 4,
+    "test_global_minimum_vs_independent_enumeration": 14,
+    "test_native_energy_and_constraint_duals": 8,
+    "test_noncollinear_complex_exchange": 8,
+    "test_complete_joint_gauge": 7,
+    "test_active_temperature_response": 8,
+    "test_nonlocal_parameter_response": 10,
+    "test_physical_density_response": 5,
+    "test_checkpoint_revises_prefix": 7,
+    "test_resumed_response_is_global": 5,
+    "test_thirty_two_frame_path": 5,
+    "test_supported_molecular_sizes": 3,
+    "test_empty_and_zero_query_shapes": 1,
+    "test_rejection_preserves_prior": 1,
+    "test_scientific_context_and_checksum": 1,
+    "test_extra_fixed_constraint": 1
+  },
+  "total_weight": 100
+}
