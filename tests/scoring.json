@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "description": "Fixed pre-calibration weights for independent scientific and continuation behaviors",
+  "description": "Positive scientific and continuation behavior weights",
   "weights": {
     "test_native_correspondence_density": 12,
     "test_complete_physical_candidate_counts": 4,

@@ -1,19 +1,17 @@
-# Verifier environment compatibility
+# Thermal Hamiltonian reconstruction
 
-The verifier starts as root on Linux/amd64. It accepts read-only `/tests`
-and `/solution` mounts without changing their ownership or permissions.
-Candidates run in a dependency-only chroot with a distinct unprivileged UID
-and private scratch per call. Only current `/app/src` and the public native
-object adapter enter that filesystem; tests, answers and reward files do not.
-Mandatory no_new_privs and seccomp prohibit privilege recovery and networking.
-Preparation probes filesystem and network restrictions before scientific tests.
-Unavailable isolation fails closed. Landlock support is not required.
+This application extends PySCF 2.14.0 GHF to synthetic observation paths.
+Source: https://github.com/pyscf/pyscf, tag `v2.14.0`, commit
+`c63a953ba603a5ad8c1d65d88da72aaf05ede4d8`; its Apache-2.0 license is in
+`environment/src/PYSCF-LICENSE`.
 
-The container needs the standard Docker SYS_CHROOT, MKNOD, SETUID and SETGID
-capabilities; privileged mode is not required. Custom runtimes that remove
-these capabilities need compatible configuration. CPU, memory, time budgets,
-scientific contracts, assertions and reference implementations are unchanged.
+Implement `thermal_path.reconstruct` under `/app/src`. The scientific contract
+is in `instruction.md`. Only `/app/src` is transferred to the separate verifier.
+The native adapter supplies genuine molecular GHF objects with cached AO
+integrals. Runtime and verifier dependencies are installed from pinned wheels.
 
-This compatibility revision was prepared without executing builds, tests,
-Oracle/NOP, audit tools or model evaluation, as requested. Earlier scores and
-trajectories remain evidence for their original commits only.
+Run with Harbor and Docker on Linux/amd64. The verifier starts as root and runs
+each candidate call under a distinct unprivileged UID in a dependency-only
+chroot. It needs Docker's standard SYS_CHROOT, MKNOD, SETUID and SETGID
+capabilities. Candidate scratch is private; tests, solutions and reward files
+are inaccessible. Each scientific call has 180 seconds, 2 CPU and 4 GiB.
