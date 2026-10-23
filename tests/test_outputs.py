@@ -46,13 +46,23 @@ def test_complete_physical_candidate_counts(path_case):
     assert all(type(x) is int for x in actual['candidate_counts'])
 
 
-def test_global_minimum_vs_independent_enumeration(path_case):
+@pytest.mark.parametrize('scenario',['small_interior','complex_native_corner'])
+def test_global_minimum_vs_independent_enumeration(path_case,scenario):
     """"所有帧共同参与最小化；追加观测后，既有帧的最优对应和参数代表元可以改变。" All 256 native correspondence paths are independently optimized."""
-    case,expected,actual=path_case
+    if scenario=='small_interior':
+        case,expected,actual=path_case
+        expected_parameters=expected['best']['parameters'];expected_objective=expected['best']['objective']
+        enumerated=expected['enumerated'];gap=expected['gap']
+    else:
+        from global_corner import certified_corner
+        case,certificate=certified_corner();args,kwargs=arguments(case)
+        actual=call('reconstruct',*args,**kwargs)
+        expected_parameters=certificate['parameters'];expected_objective=certificate['objective']
+        enumerated=certificate['enumerated'];gap=certificate['gap']
     parameters=np.asarray([np.r_[v['coefficients'],v['temperature']] for v in actual['frames']])
-    assert expected['enumerated']==256 and expected['gap']>1e-5, 'Independent fixture must have a separated global mapping'
-    np.testing.assert_allclose(parameters,expected['best']['parameters'],atol=5e-7,rtol=3e-6,err_msg='jointly optimal complete path parameters')
-    np.testing.assert_allclose(actual['objective'],expected['best']['objective'],atol=5e-7,rtol=3e-6,err_msg='global minimum J')
+    assert enumerated=={'small_interior':256,'complex_native_corner':4096}[scenario] and gap>1e-5, 'Independent fixture must completely certify a separated global correspondence'
+    np.testing.assert_allclose(parameters,expected_parameters,atol=5e-7,rtol=3e-6,err_msg='jointly optimal complete native path parameters')
+    np.testing.assert_allclose(actual['objective'],expected_objective,atol=5e-7,rtol=3e-6,err_msg='global minimum J')
 
 
 def test_native_energy_and_constraint_duals(path_case):

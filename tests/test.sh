@@ -3,9 +3,14 @@ set -euo pipefail
 mkdir -p /logs/verifier
 chmod 700 /logs/verifier /tests
 if [ -d /solution ]; then chmod 700 /solution; fi
+reset_reward() {
+    printf '0\n' > /logs/verifier/reward.initializing
+    mv -f /logs/verifier/reward.initializing /logs/verifier/reward.txt
+}
+reset_reward
 fail_closed() {
     status=$?
-    if [ "$status" -ne 0 ]; then python -I /tests/grade.py abort || true; fi
+    if [ "$status" -ne 0 ]; then reset_reward; fi
 }
 trap fail_closed EXIT
 trap 'exit 130' INT
