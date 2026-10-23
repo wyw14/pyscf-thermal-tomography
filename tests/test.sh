@@ -1,8 +1,6 @@
 #!/bin/bash
 set -euo pipefail
 mkdir -p /logs/verifier
-chmod 700 /logs/verifier /tests
-if [ -d /solution ]; then chmod 700 /solution; fi
 reset_reward() {
     printf '0\n' > /logs/verifier/reward.initializing
     mv -f /logs/verifier/reward.initializing /logs/verifier/reward.txt
@@ -13,13 +11,14 @@ fail_closed() {
     if [ "$status" -ne 0 ]; then reset_reward; fi
 }
 trap fail_closed EXIT
+chmod 700 /logs/verifier
 trap 'exit 130' INT
 trap 'exit 143' TERM
 trap 'exit 129' HUP
 python -I /tests/grade.py initialize
 python -I /tests/grade.py check-wheels
 python -m pip install --no-index --find-links=/tests/wheels --require-hashes -r /tests/requirements.lock.txt
-chmod 0444 /tests/*.py /tests/*.ini /tests/*.json
+python -I /tests/runtime_sandbox.py > /logs/verifier/isolation-preflight.log 2>&1
 python -m pip freeze > /logs/verifier/environment.txt
 cd /tests
 set +e

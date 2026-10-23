@@ -8,22 +8,14 @@ import os
 import signal
 import subprocess
 import sys
-import tempfile
+import shutil
+from contextlib import contextmanager
+from runtime_sandbox import new_scratch, restrict
 from pathlib import Path
 from codec import encode, decode
 
 
-def _restrict():
-    if os.geteuid() == 0:
-        libc = ctypes.CDLL(None, use_errno=True)
-        if libc.prctl(38, 1, 0, 0, 0) != 0:
-            raise OSError(ctypes.get_errno(), "no_new_privs unavailable")
-        os.setgroups([])
-        os.setgid(65534)
-        os.setuid(65534)
-
-
-def _cleanup_candidate_uid():
+def _cleanup_candidate_uid(candidate_uid):
     """This dedicated verifier runs one candidate call at a time."""
     if os.geteuid() != 0:
         return
@@ -38,14 +30,19 @@ def _cleanup_candidate_uid():
                 )
                 uid = int(fields["Uid"].split()[0])
                 state = fields["State"].strip().split()[0]
-                if uid == 65534:
+                if uid == candidate_uid:
                     remaining.append((int(status.parent.name), state))
             except (OSError, ValueError, KeyError):
                 continue
         if not remaining:
             return
         for pid, state in remaining:
-            if state != "Z":
+            if state == "Z":
+                try:
+                    os.waitpid(pid, os.WNOHANG)
+                except ChildProcessError:
+                    pass
+            else:
                 try:
                     os.kill(pid, signal.SIGKILL)
                 except ProcessLookupError:
@@ -54,23 +51,34 @@ def _cleanup_candidate_uid():
     raise RuntimeError("Candidate processes were not fully reaped")
 
 
+@contextmanager
+def _scratch():
+    folder, uid = new_scratch()
+    try:
+        yield folder, uid
+    finally:
+        shutil.rmtree(folder)
+
+
 def call(function, *args, **kwargs):
     timeout = float(os.environ.get("CANDIDATE_CALL_TIMEOUT", "180"))
     payload = json.dumps(
         encode(dict(function=function, args=args, kwargs=kwargs)), allow_nan=False
     )
-    with tempfile.TemporaryDirectory(prefix="candidate-") as temp:
-        if os.geteuid() == 0:
-            os.chown(temp, 65534, 65534)
+    libc = ctypes.CDLL(None, use_errno=True)
+    if libc.prctl(36, 1, 0, 0, 0) != 0:
+        raise OSError(ctypes.get_errno(), "Candidate descendant reaping unavailable")
+    with _scratch() as (folder, uid):
+        temp = "/tmp/" + Path(folder).name
         process = subprocess.Popen(
             [sys.executable, "-I", "/runner/worker.py"],
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True,
-            cwd=temp,
+            cwd="/",
             start_new_session=True,
-            preexec_fn=_restrict,
+            preexec_fn=lambda: restrict(folder, uid),
             env={
                 "PATH": "/usr/local/bin:/usr/bin:/bin",
                 "HOME": temp,
@@ -90,14 +98,14 @@ def call(function, *args, **kwargs):
             except ProcessLookupError:
                 pass
             stdout, stderr = process.communicate(timeout=5)
-            _cleanup_candidate_uid()
+            _cleanup_candidate_uid(uid)
             raise TimeoutError(f"candidate exceeded {timeout}s")
         finally:
             try:
                 os.killpg(process.pid, signal.SIGKILL)
             except ProcessLookupError:
                 pass
-            _cleanup_candidate_uid()
+            _cleanup_candidate_uid(uid)
         if process.returncode:
             raise RuntimeError(
                 f"candidate process failed {process.returncode}: {stderr[-3000:]}"
