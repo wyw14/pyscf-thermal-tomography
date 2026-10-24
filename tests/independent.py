@@ -38,7 +38,11 @@ def coordinates(matrices, frame):
 
 def fermion_entropy(p):
     occupations = np.linalg.eigvalsh(p)
-    if occupations.min() <= 0 or occupations.max() >= 1:
+    if (
+        not np.all(np.isfinite(occupations))
+        or occupations.min() <= 0
+        or occupations.max() >= 1
+    ):
         raise ValueError("Pauli violation")
     return float(
         -np.sum(
@@ -70,6 +74,36 @@ def explicit_ghf(mol, dm):
                     coulomb
                 )
     return result
+
+
+def native_thermodynamics(case, frame):
+    """Recompute entropy from the AO metric and energy from explicit ERI contraction."""
+    overlap = case["mf"].get_ovlp()
+    eigenvalues, eigenvectors = linalg.eigh(overlap)
+    root = (eigenvectors * np.sqrt(eigenvalues)) @ eigenvectors.conj().T
+    density = np.asarray(frame["density"], dtype=complex)
+    coefficients = np.asarray(frame["coefficients"], dtype=float)
+    temperature = float(frame["temperature"])
+    if (
+        not np.all(np.isfinite(density))
+        or not np.all(np.isfinite(coefficients))
+        or not np.isfinite(temperature)
+    ):
+        raise ValueError("Non-finite thermodynamic state")
+    occupation = root @ density @ root
+    entropy = fermion_entropy(occupation)
+    potential = explicit_ghf(case["mol"], density)
+    field = np.einsum("a,aij->ij", coefficients, case["generators"])
+    energy = float(
+        case["mf"].energy_nuc()
+        + np.trace((case["mf"].get_hcore() + field) @ density).real
+        + 0.5 * case["coupling"] * np.trace(density @ potential).real
+    )
+    return {
+        "entropy": entropy,
+        "energy": energy,
+        "free_energy": energy - temperature * entropy,
+    }
 
 
 def record_from_density(case, p, order, directions):

@@ -1,24 +1,206 @@
 {
-  "version": 1,
-  "description": "Positive scientific and continuation behavior weights",
-  "weights": {
-    "test_native_correspondence_density": 12,
-    "test_complete_physical_candidate_counts": 4,
-    "test_global_minimum_vs_independent_enumeration": 14,
-    "test_native_energy_and_constraint_duals": 8,
-    "test_noncollinear_complex_exchange": 8,
-    "test_complete_joint_gauge": 7,
-    "test_active_temperature_response": 8,
-    "test_nonlocal_parameter_response": 10,
-    "test_physical_density_response": 5,
-    "test_checkpoint_revises_prefix": 7,
-    "test_resumed_response_is_global": 5,
-    "test_thirty_two_frame_path": 5,
-    "test_supported_molecular_sizes": 3,
-    "test_empty_and_zero_query_shapes": 1,
-    "test_rejection_preserves_prior": 1,
-    "test_scientific_context_and_checksum": 1,
-    "test_extra_fixed_constraint": 1
+  "schema_version": 1,
+  "weight_policy": {
+    "aggregation": "Sum positive passing behavior contributions after complete trusted execution. Equivalent parameter cases divide a fixed behavior budget.",
+    "basis": "Global reconstruction, native physical quantities and coupled responses carry the main contribution. Continuation and scientific input preservation remain separate requirements; structural rejection and output formatting carry smaller budgets.",
+    "hard_gates": [
+      "Exact test collection and complete setup/call/teardown lifecycle",
+      "Matching trusted source hashes, execution identity, JUnit outcomes and normal pytest completion"
+    ]
   },
-  "total_weight": 100
+  "gate_tests": [],
+  "tests": {
+    "test_outputs.py::test_native_correspondence_density": {
+      "weight": 0.1,
+      "priority": "core",
+      "group": "reconstruction",
+      "rationale": "Recover physical channel correspondence and complex density in the native nonorthogonal AO metric."
+    },
+    "test_outputs.py::test_complete_physical_candidate_counts": {
+      "weight": 0.04,
+      "priority": "core",
+      "group": "reconstruction",
+      "rationale": "Retain every physically feasible channel correspondence before selecting the path."
+    },
+    "test_outputs.py::test_global_minimum_vs_independent_enumeration[small_interior]": {
+      "weight": 0.06,
+      "priority": "core",
+      "group": "global_path",
+      "rationale": "Choose the globally optimal complete path over all discrete correspondences and continuous parameter families. Parameter case: small_interior."
+    },
+    "test_outputs.py::test_global_minimum_vs_independent_enumeration[complex_native_corner]": {
+      "weight": 0.06,
+      "priority": "core",
+      "group": "global_path",
+      "rationale": "Choose the globally optimal complete path over all discrete correspondences and continuous parameter families. Parameter case: complex_native_corner."
+    },
+    "test_outputs.py::test_native_energy_and_constraint_duals": {
+      "weight": 0.06,
+      "priority": "core",
+      "group": "thermodynamics",
+      "rationale": "Preserve native interaction energy, independent free energy and the variational constraint multiplier sign."
+    },
+    "test_outputs.py::test_native_thermodynamic_outputs[entropy-whole]": {
+      "weight": 0.01,
+      "priority": "core",
+      "group": "thermodynamics",
+      "rationale": "Report independent occupation-derived entropy and free energy for every whole, prefix and resumed history frame. Parameter case: entropy-whole."
+    },
+    "test_outputs.py::test_native_thermodynamic_outputs[entropy-prefix]": {
+      "weight": 0.01,
+      "priority": "core",
+      "group": "thermodynamics",
+      "rationale": "Report independent occupation-derived entropy and free energy for every whole, prefix and resumed history frame. Parameter case: entropy-prefix."
+    },
+    "test_outputs.py::test_native_thermodynamic_outputs[entropy-resumed]": {
+      "weight": 0.01,
+      "priority": "core",
+      "group": "thermodynamics",
+      "rationale": "Report independent occupation-derived entropy and free energy for every whole, prefix and resumed history frame. Parameter case: entropy-resumed."
+    },
+    "test_outputs.py::test_native_thermodynamic_outputs[free_energy-whole]": {
+      "weight": 0.01,
+      "priority": "core",
+      "group": "thermodynamics",
+      "rationale": "Report independent occupation-derived entropy and free energy for every whole, prefix and resumed history frame. Parameter case: free_energy-whole."
+    },
+    "test_outputs.py::test_native_thermodynamic_outputs[free_energy-prefix]": {
+      "weight": 0.01,
+      "priority": "core",
+      "group": "thermodynamics",
+      "rationale": "Report independent occupation-derived entropy and free energy for every whole, prefix and resumed history frame. Parameter case: free_energy-prefix."
+    },
+    "test_outputs.py::test_native_thermodynamic_outputs[free_energy-resumed]": {
+      "weight": 0.01,
+      "priority": "core",
+      "group": "thermodynamics",
+      "rationale": "Report independent occupation-derived entropy and free energy for every whole, prefix and resumed history frame. Parameter case: free_energy-resumed."
+    },
+    "test_outputs.py::test_native_state_preserved_on_success[unrun]": {
+      "weight": 0.01,
+      "priority": "supporting",
+      "group": "input_integrity",
+      "rationale": "Complete reconstruction without overwriting the supplied native GHF orbital solution or convergence flag. Parameter case: unrun."
+    },
+    "test_outputs.py::test_native_state_preserved_on_success[converged]": {
+      "weight": 0.01,
+      "priority": "supporting",
+      "group": "input_integrity",
+      "rationale": "Complete reconstruction without overwriting the supplied native GHF orbital solution or convergence flag. Parameter case: converged."
+    },
+    "test_outputs.py::test_native_state_preserved_on_rejection[unrun]": {
+      "weight": 0.01,
+      "priority": "supporting",
+      "group": "input_integrity",
+      "rationale": "Reject invalid data without damaging an unrun or already converged native GHF calculation. Parameter case: unrun."
+    },
+    "test_outputs.py::test_native_state_preserved_on_rejection[converged]": {
+      "weight": 0.01,
+      "priority": "supporting",
+      "group": "input_integrity",
+      "rationale": "Reject invalid data without damaging an unrun or already converged native GHF calculation. Parameter case: converged."
+    },
+    "test_outputs.py::test_noncollinear_complex_exchange": {
+      "weight": 0.08,
+      "priority": "core",
+      "group": "native_physics",
+      "rationale": "Include complex spin coherence and the native off-diagonal exchange contribution."
+    },
+    "test_outputs.py::test_complete_joint_gauge": {
+      "weight": 0.07,
+      "priority": "core",
+      "group": "identifiability",
+      "rationale": "Recover all redundant-field and thermal parameter directions and select the constrained representative."
+    },
+    "test_outputs.py::test_active_temperature_response": {
+      "weight": 0.08,
+      "priority": "core",
+      "group": "response",
+      "rationale": "Compute the physical active-bound multiplier and the corresponding constrained response."
+    },
+    "test_outputs.py::test_nonlocal_parameter_response": {
+      "weight": 0.08,
+      "priority": "core",
+      "group": "response",
+      "rationale": "Propagate later observations and anchor perturbations into the whole optimal parameter path."
+    },
+    "test_outputs.py::test_physical_density_response": {
+      "weight": 0.05,
+      "priority": "core",
+      "group": "response",
+      "rationale": "Respect observable density response independently of nonlocal parameter representative changes."
+    },
+    "test_outputs.py::test_checkpoint_revises_prefix": {
+      "weight": 0.06,
+      "priority": "core",
+      "group": "continuation",
+      "rationale": "Resume from JSON state while revising earlier global representatives when new measurements arrive."
+    },
+    "test_outputs.py::test_resumed_response_is_global": {
+      "weight": 0.04,
+      "priority": "core",
+      "group": "continuation",
+      "rationale": "Preserve all query dependence across multiple process-independent checkpoint continuations."
+    },
+    "test_outputs.py::test_thirty_two_frame_path": {
+      "weight": 0.05,
+      "priority": "core",
+      "group": "global_path",
+      "rationale": "Resolve the full supported path length and attain an independently certified global objective."
+    },
+    "test_outputs.py::test_supported_molecular_sizes[two-2]": {
+      "weight": 0.01,
+      "priority": "core",
+      "group": "native_physics",
+      "rationale": "Preserve the molecular AO metric and canonical reconstruction across the supported spinor dimensions. Parameter case: two-2."
+    },
+    "test_outputs.py::test_supported_molecular_sizes[six-6]": {
+      "weight": 0.01,
+      "priority": "core",
+      "group": "native_physics",
+      "rationale": "Preserve the molecular AO metric and canonical reconstruction across the supported spinor dimensions. Parameter case: six-6."
+    },
+    "test_outputs.py::test_supported_molecular_sizes[eight-8]": {
+      "weight": 0.01,
+      "priority": "core",
+      "group": "native_physics",
+      "rationale": "Preserve the molecular AO metric and canonical reconstruction across the supported spinor dimensions. Parameter case: eight-8."
+    },
+    "test_outputs.py::test_empty_and_zero_query_shapes": {
+      "weight": 0.01,
+      "priority": "supporting",
+      "group": "interface",
+      "rationale": "Return explicit empty path and zero-query axes required by the scientific interface."
+    },
+    "test_outputs.py::test_rejection_preserves_prior": {
+      "weight": 0.01,
+      "priority": "supporting",
+      "group": "validation",
+      "rationale": "Reject infeasible observations and preserve a usable prior checkpoint for subsequent valid work."
+    },
+    "test_outputs.py::test_scientific_context_and_checksum[null]": {
+      "weight": 0.003333333333333333,
+      "priority": "supporting",
+      "group": "validation",
+      "rationale": "Reject corrupt or scientifically incompatible checkpoints instead of mixing different Hamiltonians. Parameter case: null."
+    },
+    "test_outputs.py::test_scientific_context_and_checksum[array]": {
+      "weight": 0.003333333333333333,
+      "priority": "supporting",
+      "group": "validation",
+      "rationale": "Reject corrupt or scientifically incompatible checkpoints instead of mixing different Hamiltonians. Parameter case: array."
+    },
+    "test_outputs.py::test_scientific_context_and_checksum[number]": {
+      "weight": 0.003333333333333333,
+      "priority": "supporting",
+      "group": "validation",
+      "rationale": "Reject corrupt or scientifically incompatible checkpoints instead of mixing different Hamiltonians. Parameter case: number."
+    },
+    "test_outputs.py::test_extra_fixed_constraint": {
+      "weight": 0.01,
+      "priority": "core",
+      "group": "native_physics",
+      "rationale": "Enforce an additional physical moment in the feasible density and multiplier space."
+    }
+  }
 }

@@ -60,10 +60,13 @@ def _scratch():
         shutil.rmtree(folder)
 
 
-def call(function, *args, **kwargs):
+def call(function, *args, _native_state="unrun", **kwargs):
     timeout = float(os.environ.get("CANDIDATE_CALL_TIMEOUT", "180"))
     payload = json.dumps(
-        encode(dict(function=function, args=args, kwargs=kwargs)), allow_nan=False
+        encode(
+            dict(function=function, args=args, kwargs=kwargs, native_state=_native_state)
+        ),
+        allow_nan=False,
     )
     libc = ctypes.CDLL(None, use_errno=True)
     if libc.prctl(36, 1, 0, 0, 0) != 0:

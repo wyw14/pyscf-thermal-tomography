@@ -17,6 +17,7 @@ from independent import (
     log_odds,
     coordinates,
     basis,
+    native_thermodynamics,
 )
 
 
@@ -76,7 +77,7 @@ def test_complete_physical_candidate_counts(path_case):
 
 @pytest.mark.parametrize("scenario", ["small_interior", "complex_native_corner"])
 def test_global_minimum_vs_independent_enumeration(path_case, scenario):
-    """ "所有帧共同参与最小化；追加观测后，既有帧的最优对应和参数代表元可以改变。" All 256 native correspondence paths are independently optimized."""
+    """ "所有帧共同参与最小化；追加观测后，既有帧的最优对应和参数代表元可以改变。" All 256 or 4096 native correspondence paths are independently optimized."""
     if scenario == "small_interior":
         case, expected, actual = path_case
         expected_parameters = expected["best"]["parameters"]
@@ -151,10 +152,10 @@ def test_native_energy_and_constraint_duals(path_case):
     )
     np.testing.assert_allclose(
         row["free_energy"],
-        energy - t * row["entropy"],
+        native_thermodynamics(case, row)["free_energy"],
         atol=5e-7,
         rtol=3e-6,
-        err_msg="F=E-Ts",
+        err_msg="F=E-Ts with independent density-derived entropy and energy",
     )
     np.testing.assert_allclose(
         stationary,
@@ -163,6 +164,77 @@ def test_native_energy_and_constraint_duals(path_case):
         rtol=3e-6,
         err_msg="AO variational stationarity and constraint multiplier sign",
     )
+
+
+@pytest.mark.parametrize("path_mode", ["whole", "prefix", "resumed"])
+@pytest.mark.parametrize("observable", ["entropy", "free_energy"])
+def test_native_thermodynamic_outputs(path_case, path_mode, observable):
+    """"`entropy`、`energy`、`free_energy`：上面定义的实数。"
+
+    Each returned frame, including revised checkpoint history, uses the native
+    overlap metric's Fermi entropy and an independent electronic energy.
+    """
+    case, expected, complete = path_case
+    if path_mode == "whole":
+        frames = complete["frames"]
+        records = case["records"]
+    else:
+        records = case["records"][:2]
+        args, kwargs = arguments(case, records=records)
+        prefix = call("reconstruct", *args, **kwargs)
+        frames = prefix["frames"]
+        if path_mode == "resumed":
+            checkpoint = json.loads(json.dumps(prefix["checkpoint"], allow_nan=False))
+            args, kwargs = arguments(
+                case, records=case["records"][2:], checkpoint=checkpoint
+            )
+            frames = call("reconstruct", *args, **kwargs)["frames"]
+            records = case["records"]
+    assert len(frames) == len(records), "The complete requested prefix is returned"
+    for index, frame in enumerate(frames):
+        expected_value = native_thermodynamics(case, frame)[observable]
+        np.testing.assert_allclose(
+            frame[observable],
+            expected_value,
+            atol=5e-7,
+            rtol=3e-6,
+            err_msg=f"{path_mode} frames[{index}].{observable} from native density",
+        )
+
+
+@pytest.mark.parametrize("native_state", ["unrun", "converged"])
+def test_native_state_preserved_on_success(native_state):
+    """"不得修改 mf、算符、输入记录或传入的 checkpoint。"
+
+    Successful reconstruction preserves the actual supplied GHF orbital
+    coefficients, occupations, orbital energies and convergence flag.
+    """
+    case = build_case("complex", count=1, queries=0)
+    expected = exhaustive(case)
+    args, kwargs = arguments(case)
+    actual = call("reconstruct", *args, _native_state=native_state, **kwargs)
+    np.testing.assert_allclose(
+        actual["frames"][0]["density"],
+        expected["best"]["path"][0]["density"],
+        atol=5e-7,
+        rtol=3e-6,
+        err_msg=f"{native_state} GHF supports the same physical reconstruction",
+    )
+
+
+@pytest.mark.parametrize("native_state", ["unrun", "converged"])
+def test_native_state_preserved_on_rejection(native_state):
+    """"不得修改 mf、算符、输入记录或传入的 checkpoint。"
+
+    A rejected entropy record must preserve both unrun and converged native
+    scientific state; the worker checks after catching the candidate exception.
+    """
+    case = build_case("complex", count=1, queries=0)
+    bad_records = copy.deepcopy(case["records"])
+    bad_records[0]["entropy"] = -10
+    args, kwargs = arguments(case, records=bad_records)
+    with pytest.raises(ValueError):
+        call("reconstruct", *args, _native_state=native_state, **kwargs)
 
 
 def test_noncollinear_complex_exchange():
