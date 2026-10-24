@@ -7,6 +7,13 @@ ROOT = Path("/logs/verifier")
 record = {}
 
 
+def record_runtime_fault(kind, **details):
+    """Record faults observed by the trusted parent, not candidate error labels."""
+    record.setdefault("runtime_faults", []).append(
+        {"kind": kind, "test": os.environ.get("PYTEST_CURRENT_TEST", ""), **details}
+    )
+
+
 def pytest_sessionstart(session):
     global record
     identity = json.loads((ROOT / "run-identity.json").read_text())
@@ -15,6 +22,7 @@ def pytest_sessionstart(session):
         "collected": [],
         "reports": {},
         "session_finished": False,
+        "runtime_faults": [],
     }
 
 

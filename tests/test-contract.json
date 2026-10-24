@@ -35,19 +35,19 @@
     "test_outputs.py::test_extra_fixed_constraint"
   ],
   "test_files_sha256": {
-    "candidate.py": "bab6d9c9a994fbca402ba025b5da38410e8d82c687c0dd7ae1ef414847198426",
+    "candidate.py": "1991510339f9838d42752670cab731efeb45581edf6344c165d22f60d37bce3b",
     "codec.py": "7ad423c0797ef80c1b631ad5ca52f934350fab9575da810089feae61d46cbde9",
     "data/native_global_corner.npz": "53c6abc22f97a81884644453b25c91633b87d889e4cb77bb785ff9c921a626db",
     "global_corner.py": "a92de310094dffc9f31240e32a5c15cb0ae8d62da08943cac2affdd4aa6efd00",
-    "grade.py": "6c2e99c162377dc3eceeeda7b6726eca9378ba4c3b163d0b77e94a09780355aa",
+    "grade.py": "46bab13efdd5e9770c5e93dcbd99d7bde97a721ccb772af192bba20e38a766ee",
     "independent.py": "06da0b6f993c1219e38aa1a84954a1c6fbd78b44131ba7f76cb9d56e01d5c83a",
     "pytest.ini": "1dac468dd93a169701c454eceadb34c9ebe60cdb8afa67a28ea85f0f0dfa5bba",
     "requirements.lock.txt": "79069740cb5d844bdda31008e227e55371d8974362e09c62cfc920cc80eab4db",
     "score.py": "39aa64bb0ee8efdad69e63fc493aafb8a6d6e1ce3467724a8acb392a41b84ec1",
-    "scoring.json": "01e28ac8d560ede9afdf048a18343ebd0021bdf01854ea8fd0a95a995a890417",
+    "scoring.json": "fe1bdb564efb29e800a30d426f5370b2fe40e1d14a0e15e55b00664fd1bb9943",
     "test.sh": "f6e00e7e89a5d7a9c916df19e47bc6224b84f8b71321527507426256fd3bca5e",
-    "test_outputs.py": "aaf448a75e60b4d646e185f5cb9121c52ce802561b5b61c88d0a032dd162b4dc",
-    "trusted_events.py": "9edbf5afe1a10c9c393aac4cf0be1e46a886c510df88b1a7b2e2df368fb5a044",
+    "test_outputs.py": "bafd7cfaf65c64ecaaceb6257cd91b9fa5235d9e24daba50e08bf0afb57b4b6f",
+    "trusted_events.py": "322e8acb3c9c8f406685aa2ede246eb8448fcba8579f357485c7e4145b467346",
     "runtime_sandbox.py": "2948614efc4047dd050bdc3088952e31259f71428338d98dc7485c066889d383"
   },
   "wheel_files_sha256": {

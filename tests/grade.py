@@ -56,6 +56,11 @@ def main():
     execution = json.loads((ROOT / "execution.json").read_text())
     expected = contract["nodeids"]
     reasons = []
+    runtime_faults = execution.get("runtime_faults")
+    if not isinstance(runtime_faults, list):
+        reasons.append("Missing trusted runtime fault evidence")
+    elif runtime_faults:
+        reasons.append("Candidate execution or transport did not complete reliably")
     if sys.argv[2] not in ("0", "1"):
         reasons.append("Pytest infrastructure or interrupted exit " + sys.argv[2])
     if (
@@ -104,6 +109,7 @@ def main():
         "expected_cases": len(expected),
         "actual_cases": len(cases),
         "reasons": reasons,
+        "runtime_faults": runtime_faults,
         "weighted_behaviors": breakdown,
         "reward": reward,
     }

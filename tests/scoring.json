@@ -5,7 +5,8 @@
     "basis": "Global reconstruction, native physical quantities and coupled responses carry the main contribution. Continuation and scientific input preservation remain separate requirements; structural rejection and output formatting carry smaller budgets.",
     "hard_gates": [
       "Exact test collection and complete setup/call/teardown lifecycle",
-      "Matching trusted source hashes, execution identity, JUnit outcomes and normal pytest completion"
+      "Matching trusted source hashes, execution identity, JUnit outcomes and normal pytest completion",
+      "No trusted-parent deadline, worker crash, transport/protocol error or cleanup failure"
     ]
   },
   "gate_tests": [],

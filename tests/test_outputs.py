@@ -166,6 +166,23 @@ def test_native_energy_and_constraint_duals(path_case):
     )
 
 
+def thermodynamic_frames(case, complete, path_mode):
+    """Prepare whole, prefix and resumed calls without deciding test outcomes."""
+    if path_mode == "whole":
+        return complete["frames"]
+    args, kwargs = arguments(case, records=case["records"][:2])
+    prefix = call("reconstruct", *args, **kwargs)
+    if path_mode == "prefix":
+        return prefix["frames"]
+    if path_mode != "resumed":
+        raise ValueError("Unknown thermodynamic path preparation")
+    checkpoint = json.loads(json.dumps(prefix["checkpoint"], allow_nan=False))
+    args, kwargs = arguments(
+        case, records=case["records"][2:], checkpoint=checkpoint
+    )
+    return call("reconstruct", *args, **kwargs)["frames"]
+
+
 @pytest.mark.parametrize("path_mode", ["whole", "prefix", "resumed"])
 @pytest.mark.parametrize("observable", ["entropy", "free_energy"])
 def test_native_thermodynamic_outputs(path_case, path_mode, observable):
@@ -175,31 +192,19 @@ def test_native_thermodynamic_outputs(path_case, path_mode, observable):
     overlap metric's Fermi entropy and an independent electronic energy.
     """
     case, expected, complete = path_case
-    if path_mode == "whole":
-        frames = complete["frames"]
-        records = case["records"]
-    else:
-        records = case["records"][:2]
-        args, kwargs = arguments(case, records=records)
-        prefix = call("reconstruct", *args, **kwargs)
-        frames = prefix["frames"]
-        if path_mode == "resumed":
-            checkpoint = json.loads(json.dumps(prefix["checkpoint"], allow_nan=False))
-            args, kwargs = arguments(
-                case, records=case["records"][2:], checkpoint=checkpoint
-            )
-            frames = call("reconstruct", *args, **kwargs)["frames"]
-            records = case["records"]
-    assert len(frames) == len(records), "The complete requested prefix is returned"
-    for index, frame in enumerate(frames):
-        expected_value = native_thermodynamics(case, frame)[observable]
-        np.testing.assert_allclose(
-            frame[observable],
-            expected_value,
-            atol=5e-7,
-            rtol=3e-6,
-            err_msg=f"{path_mode} frames[{index}].{observable} from native density",
-        )
+    frames = thermodynamic_frames(case, complete, path_mode)
+    assert len(frames) == {"whole": 4, "prefix": 2, "resumed": 4}[path_mode], (
+        "The complete nonempty requested prefix is returned"
+    )
+    expected_values = [native_thermodynamics(case, frame)[observable] for frame in frames]
+    actual_values = [frame[observable] for frame in frames]
+    np.testing.assert_allclose(
+        actual_values,
+        expected_values,
+        atol=5e-7,
+        rtol=3e-6,
+        err_msg=f"{path_mode} frames[].{observable} from native density",
+    )
 
 
 @pytest.mark.parametrize("native_state", ["unrun", "converged"])
